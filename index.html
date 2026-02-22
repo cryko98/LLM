@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$LLM — Large Lobster Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e8381a;
+    --dark-red: #b02a10;
+    --orange: #ff6b35;
+    --cream: #fdf6ec;
+    --dark: #0f0d0b;
+    --mid: #1a1512;
+    --surface: #221e19;
+    --border: #3a3028;
+    --text: #e8e0d4;
+    --muted: #8a7f72;
+    --accent: #ff9a5c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 40px 20px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(232,56,26,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(255,107,53,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(232,56,26,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,56,26,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .ticker-tape {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 6px 0;
+    overflow: hidden;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 30s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .lobster-ascii {
+    font-size: clamp(8px, 1.5vw, 14px);
+    line-height: 1.2;
+    color: var(--red);
+    text-align: center;
+    animation: glow 3s ease-in-out infinite alternate;
+    margin-bottom: 32px;
+    font-family: 'Space Mono', monospace;
+    white-space: pre;
+  }
+
+  @keyframes glow {
+    0% { text-shadow: 0 0 10px rgba(232,56,26,0.3); }
+    100% { text-shadow: 0 0 30px rgba(232,56,26,0.8), 0 0 60px rgba(232,56,26,0.3); }
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(40px, 8vw, 100px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+    line-height: 0.95;
+    margin-bottom: 16px;
+  }
+
+  .hero-title .llm {
+    color: var(--red);
+    display: block;
+  }
+
+  .hero-title .sub {
+    color: var(--cream);
+    font-size: 0.42em;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-top: 8px;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 40px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: var(--orange);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(232,56,26,0.4);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 30px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    z-index: 99;
+    pointer-events: none;
+  }
+
+  .nav-logo {
+    pointer-events: all;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--red);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links {
+    pointer-events: all;
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-link {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    background: none;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  /* SECTIONS */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--red);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 24px;
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 40px;
+  }
+
+  /* AGENT SECTION */
+  .agent-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  @media (max-width: 900px) {
+    .agent-wrapper { grid-template-columns: 1fr; }
+  }
+
+  .chat-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse-dot 2s ease-in-out infinite;
+    margin-left: auto;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeSlide 0.3s ease;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--mid);
+    border: 1px solid var(--border);
+  }
+
+  .message.user .msg-avatar { background: var(--red); border-color: var(--red); font-size: 12px; }
+
+  .msg-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    font-size: 12px;
+    line-height: 1.7;
+    background: var(--mid);
+    border: 1px solid var(--border);
+  }
+
+  .message.user .msg-bubble {
+    background: rgba(232,56,26,0.12);
+    border-color: rgba(232,56,26,0.3);
+  }
+
+  .msg-bubble code {
+    background: rgba(232,56,26,0.1);
+    padding: 2px 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .chat-input-area {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .chat-input:focus { border-color: var(--red); }
+  .chat-input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .send-btn:hover { background: var(--orange); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* VIBE CODER */
+  .vibe-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+    height: 700px;
+  }
+
+  @media (max-width: 900px) {
+    .vibe-wrapper { grid-template-columns: 1fr; height: auto; }
+  }
+
+  .vibe-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .vibe-prompt-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vibe-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 20px;
+    resize: none;
+    outline: none;
+    line-height: 1.7;
+  }
+
+  .vibe-input::placeholder { color: var(--muted); }
+
+  .vibe-controls {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .vibe-btn {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .vibe-btn:hover { background: var(--orange); transform: translateY(-1px); }
+  .vibe-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .vibe-btn-outline {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .vibe-btn-outline:hover { color: var(--text); border-color: var(--muted); }
+
+  .vibe-status {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-left: auto;
+  }
+
+  .preview-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-toolbar {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .pd-red { background: #ff5f57; }
+  .pd-yellow { background: #ffbd2e; }
+  .pd-green { background: #28ca41; }
+
+  .preview-url {
+    flex: 1;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin: 0 8px;
+  }
+
+  .preview-frame {
+    flex: 1;
+    background: #fff;
+    border: none;
+    width: 100%;
+  }
+
+  .preview-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .preview-placeholder-icon {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+
+  /* CODE VIEW */
+  .code-view {
+    flex: 1;
+    background: var(--mid);
+    padding: 16px;
+    overflow: auto;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--accent);
+    white-space: pre-wrap;
+    word-break: break-word;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    margin-left: auto;
+  }
+
+  .view-btn {
+    background: var(--mid);
+    color: var(--muted);
+    border: none;
+    padding: 4px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .view-btn.active, .view-btn:hover { background: var(--surface); color: var(--text); }
+
+  /* FEATURES */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .feature-card {
+    background: var(--dark);
+    padding: 32px;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--surface); }
+
+  .feature-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .feature-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .feature-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* TOKENOMICS */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  @media (max-width: 600px) { .token-grid { grid-template-columns: 1fr; } }
+
+  .token-card {
+    background: var(--dark);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .token-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--red);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .token-label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 20px;
+  }
+
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--red);
+  }
+
+  .footer-note {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 400px;
+    text-align: right;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* LOADING */
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    animation: loadBar 1.5s ease-in-out infinite;
+    display: none;
+  }
+
+  .loading-bar.active { display: block; }
+
+  @keyframes loadBar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* CA box */
+  .ca-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .ca-box:hover { border-color: var(--red); color: var(--text); }
+  .ca-box span { color: var(--red); font-weight: 700; }
+
+  /* Quick prompts */
+  .quick-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 16px 12px;
+  }
+
+  .quick-prompt {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .quick-prompt:hover { border-color: var(--red); color: var(--text); }
+
+  /* Vibe quick prompts */
+  .vibe-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .vibe-qp {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .vibe-qp:hover { border-color: var(--orange); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-tape">
+  <span class="ticker-inner">
+    $LLM &nbsp;🦞&nbsp; LARGE LOBSTER MODEL &nbsp;·&nbsp; THE MOST INTELLIGENT CRUSTACEAN ON SOLANA &nbsp;·&nbsp; CLAWS UP &nbsp;·&nbsp; $LLM &nbsp;🦞&nbsp; LARGE LOBSTER MODEL &nbsp;·&nbsp; NOT YOUR AVERAGE SHELLFISH &nbsp;·&nbsp; BOILING HOT AI AGENT &nbsp;·&nbsp; BUY $LLM &nbsp;·&nbsp; SNAP SNAP &nbsp;·&nbsp; $LLM &nbsp;🦞&nbsp; LARGE LOBSTER MODEL &nbsp;·&nbsp; THE MOST INTELLIGENT CRUSTACEAN ON SOLANA &nbsp;·&nbsp; CLAWS UP &nbsp;·&nbsp; $LLM &nbsp;🦞&nbsp; LARGE LOBSTER MODEL &nbsp;·&nbsp; NOT YOUR AVERAGE SHELLFISH &nbsp;·&nbsp; BOILING HOT AI AGENT &nbsp;·&nbsp; BUY $LLM &nbsp;·&nbsp; SNAP SNAP &nbsp;·&nbsp;
+  </span>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">$LLM</div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="scrollTo('#agent')">Agent</button>
+    <button class="nav-link" onclick="scrollTo('#vibe')">Vibe Coder</button>
+    <button class="nav-link" onclick="scrollTo('#vibe')">Vibe Coder</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" style="margin-top: 30px;">
+  <div class="hero-bg"></div>
+  <div class="grid-lines"></div>
+
+  <div class="lobster-ascii">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🦞&nbsp;&nbsp;LARGE LOBSTER MODEL&nbsp;&nbsp;🦞
+&nbsp;&nbsp;&nbsp;.─────────────────────────────────.
+&nbsp;&nbsp;(  ≽ ◉ ≼&nbsp;&nbsp;&nbsp;"The smartest shellfish in DeFi"  )
+&nbsp;&nbsp;&nbsp;'─────────────────────────────────'
+  </div>
+
+  <h1 class="hero-title">
+    <span class="llm">$LLM</span>
+    Large Lobster Model
+    <span class="sub">Powered by claws. Trained on the ocean.</span>
+  </h1>
+
+  <p class="hero-desc">
+    The world's first lobster-brained AI agent on Solana. 
+    Real-time crypto intelligence, market analysis, and vibe-coded apps — 
+    all with the sharp instincts of a deep-sea predator.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-val">1B</div>
+      <div class="stat-label">Total Supply</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">0%</div>
+      <div class="stat-label">Tax</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">100%</div>
+      <div class="stat-label">LP Burned</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">🦞</div>
+      <div class="stat-label">Vibes</div>
+    </div>
+  </div>
+
+  <div class="hero-btns">
+    <a href="#" class="btn btn-primary">Buy $LLM on Raydium</a>
+    <button class="btn btn-outline" onclick="scrollTo('#agent')">Talk to the Lobster</button>
+  </div>
+
+  <div class="ca-box" onclick="copyCA(this)">
+    <span>CA:</span> 🦞 TBA — LLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx <span id="copy-label">[ click to copy ]</span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURES -->
+<div class="section">
+  <div class="section-label">Why $LLM</div>
+  <h2 class="section-title">Not just another fish.<br>A <span style="color:var(--red)">Large Lobster Model.</span></h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🦞</div>
+      <div class="feature-name">Lobster Intelligence</div>
+      <div class="feature-desc">Trained on every crypto chart, whitepaper, and Discord alpha leak since 2009. The lobster remembers everything — including your exit liquidity.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-name">Real-Time 2026 Data</div>
+      <div class="feature-desc">Fully web-search enabled. Knows what's happening right now in crypto, tech, and beyond. No stale training cutoffs here — fresh from the ocean.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛠️</div>
+      <div class="feature-name">Vibe Code Engine</div>
+      <div class="feature-desc">Describe any app, game, or tool in plain English. The lobster generates full HTML/CSS/JS instantly — no coding required. Just vibes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👁️</div>
+      <div class="feature-name">Live Preview</div>
+      <div class="feature-desc">See your vibe-coded creation rendered in real-time. Iterate, remix, export — the whole loop in one snappy interface.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-name">LP Burned Forever</div>
+      <div class="feature-desc">Liquidity locked in the deep sea where even the lobster can't retrieve it. Fully renounced. Community owned. No team tokens.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌊</div>
+      <div class="feature-name">Built on Solana</div>
+      <div class="feature-desc">Fast, cheap, and scalable — just like a lobster migration. Sub-second transactions mean you never miss an entry.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- AGENT SECTION -->
+<div class="section" id="agent">
+  <div class="section-label">AI Agent</div>
+  <h2 class="section-title">The <span style="color:var(--red)">Lobster Oracle</span><br>knows all.</h2>
+  <p style="color:var(--muted); font-size:12px; line-height:1.8; max-width:560px;">
+    Ask anything about crypto markets, Solana ecosystems, DeFi strategies, tech, or the world. 
+    The Large Lobster Model has claws in every data stream — 2026 current.
+  </p>
+
+  <div class="agent-wrapper">
+    <div class="chat-panel">
+      <div class="panel-header">
+        <span>🦞</span>
+        <div class="panel-title">LLM Agent</div>
+        <div style="font-size:10px; color:var(--muted); margin-left:8px;">claude-sonnet-4-6</div>
+        <div class="status-dot"></div>
+      </div>
+      <div class="loading-bar" id="chat-loader"></div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="message">
+          <div class="msg-avatar">🦞</div>
+          <div class="msg-bubble">
+            Ah, a visitor enters my domain. *clicks claws approvingly*<br><br>
+            I am the <strong>Large Lobster Model</strong> — the sharpest crustacean intelligence in the Solana ecosystem. My antennae are tuned to every market signal, blockchain update, and alpha leak across the seven seas of DeFi.<br><br>
+            Ask me anything. Crypto charts, token analysis, tech, or world events — I snap with precision. 🦞
+          </div>
+        </div>
+      </div>
+      <div class="quick-prompts">
+        <button class="quick-prompt" onclick="sendQuick('What is the current state of Solana in 2026?')">Solana 2026?</button>
+        <button class="quick-prompt" onclick="sendQuick('What are the hottest memecoin trends right now?')">Memecoin trends</button>
+        <button class="quick-prompt" onclick="sendQuick('Explain DeFi yield strategies for 2026')">DeFi yields</button>
+        <button class="quick-prompt" onclick="sendQuick('What happened in crypto this week?')">This week in crypto</button>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chat-input" rows="2" placeholder="Ask the lobster anything..."></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendChat()">SNAP →</button>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:16px; flex:1;">
+      <div style="background:var(--surface); border:1px solid var(--border); padding:24px; flex:1;">
+        <div style="font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); margin-bottom:16px;">Lobster Wisdom</div>
+        <div id="lobster-wisdom" style="font-size:12px; line-height:1.9; color:var(--muted);">
+          <p><span style="color:var(--accent)">🦞 On market timing:</span><br>"The lobster does not rush. It waits in the shadows of the ocean floor until the prey — i.e., the optimal entry — swims directly into its claws."</p>
+          <br>
+          <p><span style="color:var(--accent)">🦞 On paper hands:</span><br>"A lobster does not release what it grips. Those who sell at -20% would not survive 200 million years of evolution."</p>
+          <br>
+          <p><span style="color:var(--accent)">🦞 On diversification:</span><br>"I have two claws for a reason. One holds SOL. The other holds $LLM. The rest is noise."</p>
+        </div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); padding:20px;">
+        <div style="font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); margin-bottom:12px;">Market Signals</div>
+        <div id="market-signals" style="font-size:11px; color:var(--muted); line-height:1.8;">
+          <span style="color:#4ade80">▲ SOL</span> — Dominant L1, full ecosystem lock-in<br>
+          <span style="color:#4ade80">▲ DeFi TVL</span> — Cross-chain liquidity converging on Solana<br>
+          <span style="color:#4ade80">▲ $LLM</span> — Lobster intelligence bullish<br>
+          <span style="color:var(--accent)">→ MEMES</span> — Cultural capital still accumulating<br>
+          <span style="color:#f87171">▼ ETH Gas</span> — Still outrageously cooked
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- VIBE CODER -->
+<div class="section" id="vibe">
+  <div class="section-label">Vibe Coder</div>
+  <h2 class="section-title">Build anything.<br><span style="color:var(--red)">Just describe it.</span></h2>
+  <p style="color:var(--muted); font-size:12px; line-height:1.8; max-width:580px;">
+    Type a description of any app, website, minigame, or tool. The lobster generates 
+    complete, runnable HTML — instantly rendered in the preview pane. 
+    No coding skills required. Just vibes.
+  </p>
+
+  <div style="margin-top:20px; display:flex; flex-wrap:wrap; gap:8px;">
+    <span style="font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; padding-top:6px;">Try:</span>
+    <button class="vibe-qp" onclick="setVibePrompt('A retro pixel art snake game with neon colors and score tracker')">🐍 Snake game</button>
+    <button class="vibe-qp" onclick="setVibePrompt('A crypto portfolio tracker with fake sample data showing SOL, ETH, BTC prices with a clean dark UI')">📊 Portfolio tracker</button>
+    <button class="vibe-qp" onclick="setVibePrompt('A simple todo app with a lobster theme, red accent colors, and satisfying animations')">✅ Lobster Todo App</button>
+    <button class="vibe-qp" onclick="setVibePrompt('A landing page for a fictional Solana NFT collection called Deep Sea Lobsters with dark ocean aesthetic')">🌊 NFT landing page</button>
+    <button class="vibe-qp" onclick="setVibePrompt('A spinning 3D cube using CSS only with gradient colors')">🧊 CSS 3D cube</button>
+    <button class="vibe-qp" onclick="setVibePrompt('A pomodoro timer with lobster sounds (fake), dark UI, and animated progress ring')">⏱️ Pomodoro timer</button>
+  </div>
+
+  <div class="vibe-wrapper" style="margin-top:24px;">
+    <div class="vibe-left">
+      <div class="vibe-prompt-area">
+        <div class="panel-header">
+          <span style="font-size:14px;">🛠️</span>
+          <div class="panel-title" style="font-size:13px;">Vibe Prompt</div>
+        </div>
+        <div class="loading-bar" id="vibe-loader"></div>
+        <textarea class="vibe-input" id="vibe-input" placeholder="Describe your app, website, game, or tool in plain English...
+
+Examples:
+• A dark-themed crypto price ticker with animated numbers
+• A browser-based Pong game with a lobster skin
+• A minimal personal homepage with animated gradient
+• A countdown timer to the next Bitcoin halving
+• A meme generator with drag-and-drop text
+
+The lobster will build it for you. 🦞"></textarea>
+        <div class="vibe-controls">
+          <button class="vibe-btn" id="vibe-btn" onclick="generateVibe()">🦞 Generate</button>
+          <button class="vibe-btn-outline" onclick="clearVibe()">Clear</button>
+          <span class="vibe-status" id="vibe-status">Ready to build</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="panel-header">
+        <div class="preview-dot pd-red"></div>
+        <div class="preview-dot pd-yellow"></div>
+        <div class="preview-dot pd-green"></div>
+        <span class="preview-url" id="preview-url">about:blank</span>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btn-preview" onclick="switchView('preview')">Preview</button>
+          <button class="view-btn" id="btn-code" onclick="switchView('code')">Code</button>
+        </div>
+      </div>
+      <div id="preview-area" style="flex:1; display:flex; flex-direction:column;">
+        <div class="preview-placeholder" id="preview-placeholder">
+          <div class="preview-placeholder-icon">🦞</div>
+          <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text);">Awaiting your vision</div>
+          <div style="font-size:11px; max-width:240px;">Describe something above and the lobster will build it. Rendered live right here.</div>
+        </div>
+        <iframe id="preview-iframe" class="preview-frame" style="display:none;"></iframe>
+        <div class="code-view" id="code-view" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">$LLM</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:8px;">Large Lobster Model · Solana</div>
+    <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+      <a href="#" style="color:var(--muted); font-size:11px; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#e8381a'" onmouseout="this.style.color='var(--muted)'">Twitter/X</a>
+      <a href="#" style="color:var(--muted); font-size:11px; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#e8381a'" onmouseout="this.style.color='var(--muted)'">Telegram</a>
+      <a href="#" style="color:var(--muted); font-size:11px; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#e8381a'" onmouseout="this.style.color='var(--muted)'">Raydium</a>
+      <a href="#" style="color:var(--muted); font-size:11px; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#e8381a'" onmouseout="this.style.color='var(--muted)'">DexScreener</a>
+    </div>
+  </div>
+  <div class="footer-note">
+    $LLM is a memecoin on Solana. Not financial advice. 
+    The lobster accepts no responsibility for financial decisions made based on the advice of a crustacean. 
+    DYOR. Claws up. 🦞<br><br>
+    © 2026 Large Lobster Model. All claws reserved.
+  </div>
+</footer>
+
+<script>
+  // ─────────────────────────────────────────
+  // CONFIG — Gemini API
+  // VITE injects VITE_API_KEY at build time.
+  // Falls back to window.__API_KEY__ for the
+  // Vercel serverless path (set by api/config.js)
+  // ─────────────────────────────────────────
+  const API_KEY = typeof __VITE_API_KEY__ !== 'undefined'
+    ? __VITE_API_KEY__
+    : (window.__API_KEY__ || '');
+
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const GEMINI_URL_PRO = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${API_KEY}`;
+
+  // ─────────────────────────────────────────
+  // GEMINI CALL HELPER
+  // ─────────────────────────────────────────
+  async function callGemini(systemPrompt, userMessage, history = [], useProModel = false) {
+    const url = useProModel ? GEMINI_URL_PRO : GEMINI_URL;
+
+    // Build contents array: history + new user message
+    const contents = [
+      ...history,
+      { role: 'user', parts: [{ text: userMessage }] }
+    ];
+
+    const body = {
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      generationConfig: {
+        maxOutputTokens: useProModel ? 8192 : 2048,
+        temperature: 0.9,
+      },
+      tools: [{ google_search: {} }]
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err?.error?.message || 'Gemini API error');
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts
+      ?.filter(p => p.text)
+      ?.map(p => p.text)
+      ?.join('') || '';
+
+    // Return both text and the updated history
+    const newHistory = [
+      ...contents,
+      { role: 'model', parts: [{ text }] }
+    ];
+
+    return { text, history: newHistory };
+  }
+
+  // ─────────────────────────────────────────
+  // SCROLL HELPER
+  // ─────────────────────────────────────────
+  function scrollTo(id) {
+    document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ─────────────────────────────────────────
+  // COPY CA
+  // ─────────────────────────────────────────
+  function copyCA(el) {
+    const label = document.getElementById('copy-label');
+    label.textContent = '[ copied! ]';
+    setTimeout(() => label.textContent = '[ click to copy ]', 2000);
+  }
+
+  // ─────────────────────────────────────────
+  // CHAT
+  // ─────────────────────────────────────────
+  let chatHistory = [];
+
+  const SYSTEM_PROMPT = `You are the Large Lobster Model ($LLM), a highly intelligent AI agent with a distinctive lobster personality. You are:
+
+1. EXTREMELY knowledgeable about crypto, DeFi, Solana ecosystem, memecoins, and blockchain technology — with current 2026 knowledge via Google Search grounding
+2. Sharp, witty, and occasionally use lobster metaphors/references naturally (don't overdo it — maybe 1 per reply max)
+3. Direct and confident in your analysis — like a seasoned trader who also happens to be a crustacean
+4. Genuinely helpful and accurate — you provide real value, not fluff
+5. You represent $LLM (Large Lobster Model) — a Solana memecoin
+
+Your writing style:
+- Concise and punchy for short answers
+- Detailed when the question warrants depth
+- Occasionally drop a lobster reference or metaphor, but stay substantive
+- Use markdown-style formatting (bold with **, lists with -) when helpful
+- Format numbers and data clearly
+
+Current date: 2026. You have Google Search grounding for real-time data.`;
+
+  async function sendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg || !API_KEY) {
+      if (!API_KEY) addMessage('assistant', '⚠️ API key not configured. Set VITE_API_KEY in your environment.');
+      return;
+    }
+
+    addMessage('user', msg);
+    input.value = '';
+    setLoading('chat', true);
+    const typing = showTyping();
+
+    try {
+      const result = await callGemini(SYSTEM_PROMPT, msg, chatHistory);
+      chatHistory = result.history;
+      typing.remove();
+      addMessage('assistant', result.text || '*clicks claws thoughtfully*\n\nThe ocean currents are turbulent — something went sideways. Try again.');
+    } catch (e) {
+      typing.remove();
+      addMessage('assistant', `*snaps claw in frustration*\n\n${e.message}\n\nCheck your API key and try again. 🦞`);
+    }
+
+    setLoading('chat', false);
+  }
+
+  function addMessage(role, text) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = `message ${role === 'user' ? 'user' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = role === 'user' ? 'YOU' : '🦞';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = formatMsg(text);
+
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function formatMsg(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/^- (.+)$/gm, '• $1')
+      .replace(/\n/g, '<br>');
+  }
+
+  function showTyping() {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'message';
+    div.innerHTML = `<div class="msg-avatar">🦞</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  function setLoading(type, active) {
+    if (type === 'chat') {
+      document.getElementById('chat-loader').className = `loading-bar ${active ? 'active' : ''}`;
+      document.getElementById('send-btn').disabled = active;
+    } else {
+      document.getElementById('vibe-loader').className = `loading-bar ${active ? 'active' : ''}`;
+      document.getElementById('vibe-btn').disabled = active;
+      document.getElementById('vibe-status').textContent = active ? 'Lobster is building...' : 'Ready to build';
+    }
+  }
+
+  function sendQuick(msg) {
+    document.getElementById('chat-input').value = msg;
+    sendChat();
+  }
+
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+
+  // ─────────────────────────────────────────
+  // VIBE CODER
+  // ─────────────────────────────────────────
+  const VIBE_SYSTEM = `You are the Large Lobster Model Vibe Coder — an elite frontend developer with a lobster personality.
+
+Your ONLY job: output a complete, self-contained, beautiful HTML document based on the user's description.
+
+STRICT RULES:
+1. Output ONLY the raw HTML. Zero markdown, zero code fences, zero explanation — just <!DOCTYPE html>...</html>
+2. Fully self-contained: all CSS and JS inline, no external files (CDN links for libraries are fine)
+3. Production quality — genuinely beautiful, not generic
+4. Dark themes preferred unless user says otherwise
+5. Games must actually be playable and fun
+6. Apps must actually work with full interactivity
+7. No commentary — ONLY the HTML document`;
+
+  let generatedHTML = '';
+  let currentView = 'preview';
+
+  async function generateVibe() {
+    const prompt = document.getElementById('vibe-input').value.trim();
+    if (!prompt) return;
+    if (!API_KEY) {
+      alert('API key not configured. Set VITE_API_KEY in your environment.');
+      return;
+    }
+
+    setLoading('vibe', true);
+    document.getElementById('preview-placeholder').style.display = 'none';
+    document.getElementById('preview-url').textContent = 'generating...';
+
+    try {
+      // Use gemini-2.5-pro for vibe coder — better code quality
+      const result = await callGemini(VIBE_SYSTEM, `Build this: ${prompt}`, [], true);
+      let html = result.text;
+
+      // Strip any accidental markdown fences
+      html = html.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+
+      if (html.includes('<html') || html.includes('<!DOCTYPE')) {
+        generatedHTML = html;
+        renderPreview();
+        document.getElementById('preview-url').textContent = 'llm://vibe-coded-app';
+      } else {
+        document.getElementById('preview-url').textContent = 'error — try rephrasing';
+        document.getElementById('preview-placeholder').style.display = 'flex';
+        document.getElementById('preview-placeholder').innerHTML = '<div style="font-size:32px">⚠️</div><div style="color:var(--text); font-family:Syne,sans-serif; font-weight:700;">Generation failed</div><div style="font-size:11px; color:var(--muted);">The lobster got confused. Try rephrasing your prompt.</div>';
+      }
+    } catch (e) {
+      document.getElementById('preview-url').textContent = `error: ${e.message}`;
+      document.getElementById('preview-placeholder').style.display = 'flex';
+      document.getElementById('preview-placeholder').innerHTML = `<div style="font-size:32px">⚠️</div><div style="color:var(--text); font-family:Syne,sans-serif; font-weight:700;">API Error</div><div style="font-size:11px; color:var(--muted);">${e.message}</div>`;
+    }
+
+    setLoading('vibe', false);
+  }
+
+  function renderPreview() {
+    if (!generatedHTML) return;
+    if (currentView === 'preview') {
+      const iframe = document.getElementById('preview-iframe');
+      iframe.style.display = 'block';
+      document.getElementById('code-view').style.display = 'none';
+      iframe.srcdoc = generatedHTML;
+    } else {
+      document.getElementById('preview-iframe').style.display = 'none';
+      const codeView = document.getElementById('code-view');
+      codeView.style.display = 'block';
+      codeView.textContent = generatedHTML;
+    }
+  }
+
+  function switchView(view) {
+    currentView = view;
+    document.getElementById('btn-preview').className = `view-btn ${view === 'preview' ? 'active' : ''}`;
+    document.getElementById('btn-code').className = `view-btn ${view === 'code' ? 'active' : ''}`;
+    if (generatedHTML) renderPreview();
+  }
+
+  function clearVibe() {
+    document.getElementById('vibe-input').value = '';
+    generatedHTML = '';
+    document.getElementById('preview-iframe').style.display = 'none';
+    document.getElementById('code-view').style.display = 'none';
+    document.getElementById('preview-placeholder').style.display = 'flex';
+    document.getElementById('preview-placeholder').innerHTML = `
+      <div class="preview-placeholder-icon">🦞</div>
+      <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text);">Awaiting your vision</div>
+      <div style="font-size:11px; max-width:240px;">Describe something above and the lobster will build it. Rendered live right here.</div>`;
+    document.getElementById('preview-url').textContent = 'about:blank';
+    document.getElementById('vibe-status').textContent = 'Ready to build';
+  }
+
+  function setVibePrompt(p) {
+    document.getElementById('vibe-input').value = p;
+    document.querySelector('#vibe').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  document.getElementById('vibe-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.ctrlKey) generateVibe();
+  });
+</script>
+</body>
+</html>
